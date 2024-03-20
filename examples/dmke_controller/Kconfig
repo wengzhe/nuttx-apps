@@ -1,0 +1,48 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+config EXAMPLES_DMKE_CONTROLLER
+	tristate "DMKE controller example"
+	default n
+	---help---
+		Enable the DMKE controller example
+
+if EXAMPLES_DMKE_CONTROLLER
+
+config EXAMPLES_DMKE_CONTROLLER_CAN_CMD
+	string "Host Command CAN name"
+	default "can0"
+	---help---
+		This is the name of the CAN interface where host will be sending commands.
+
+config EXAMPLES_DMKE_CONTROLLER_USE_2_CAN
+	bool "Use a different CAN address for motor"
+	default n
+
+if EXAMPLES_DMKE_CONTROLLER_USE_2_CAN
+config EXAMPLES_DMKE_CONTROLLER_CAN_MOTOR
+	string "Motor CAN name"
+	default "can0"
+	---help---
+		This is the name of the CAN interface where MCU will be sending commands
+		to motors (can be the same as CONFIG_EXAMPLES_DMKE_CONTROLLER_CAN_CMD).
+endif
+
+config EXAMPLES_DMKE_CONTROLLER_PROGNAME
+	string "Program name"
+	default "dmke"
+	---help---
+		This is the name of the program that will be used when the NSH ELF
+		program is installed.
+
+config EXAMPLES_DMKE_CONTROLLER_PRIORITY
+	int "DMKE controller task priority"
+	default 100
+
+config EXAMPLES_DMKE_CONTROLLER_STACKSIZE
+	int "DMKE controller stack size"
+	default DEFAULT_TASK_STACKSIZE
+
+endif
