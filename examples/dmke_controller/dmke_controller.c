@@ -20,12 +20,12 @@
 #endif
 
 #ifndef CONFIG_EXAMPLES_DMKE_CONTROLLER_CAN_CMD
-#define CONFIG_EXAMPLES_DMKE_CONTROLLER_CAN_CMD "vcan0"
+#define CONFIG_EXAMPLES_DMKE_CONTROLLER_CAN_CMD "can0"
 #endif
 
 #ifdef CONFIG_EXAMPLES_DMKE_CONTROLLER_USE_2_CAN
 #ifndef CONFIG_EXAMPLES_DMKE_CONTROLLER_CAN_MOTOR
-#define CONFIG_EXAMPLES_DMKE_CONTROLLER_CAN_MOTOR "vcan1"
+#define CONFIG_EXAMPLES_DMKE_CONTROLLER_CAN_MOTOR "can1"
 #endif
 #define MAXSOCK (2 + USE_CANOPEND)
 #else
@@ -69,8 +69,8 @@ typedef struct {
 } cmd_t;
 
 #define INVALID_VALUE 0xFF
-#define CTRL_MODE_SPEED 0
-#define CTRL_MODE_POSITION 1
+#define CTRL_MODE_POSITION 0
+#define CTRL_MODE_SPEED 1
 
 typedef struct {
   uint16_t speed;
@@ -82,7 +82,7 @@ typedef struct {
 
 // Adjust the following values to match the actual CAN IDs
 enum {
-    MOTOR_Z = 0x11,
+    MOTOR_Z = 0x06,
     MOTOR_X = 0x12,
     MOTOR_Y = 0x13,
     MOTOR_ROLL = 0x14,
@@ -329,22 +329,22 @@ static int can_id_to_motor_id_index(uint32_t can_id)
 {
     switch (can_id) {
         case CMD_Z:
-        case 0x600 | MOTOR_Z:
+        case 0x580 | MOTOR_Z:
             return 0;
         case CMD_X:
-        case 0x600 | MOTOR_X:
+        case 0x580 | MOTOR_X:
             return 1;
         case CMD_Y:
-        case 0x600 | MOTOR_Y:
+        case 0x580 | MOTOR_Y:
             return 2;
         case CMD_ROLL:
-        case 0x600 | MOTOR_ROLL:
+        case 0x580 | MOTOR_ROLL:
             return 3;
         case CMD_PITCH:
-        case 0x600 | MOTOR_PITCH:
+        case 0x580 | MOTOR_PITCH:
             return 4;
         case CMD_YAW:
-        case 0x600 | MOTOR_YAW:
+        case 0x580 | MOTOR_YAW:
             return 5;
         default:
             return -1;
@@ -383,7 +383,7 @@ void process(int s[], struct can_frame *frame)
 {
     int i = can_id_to_motor_id_index(frame->can_id);
     if (i < 0) {
-        debug("Unknown can_id\n");
+        debug("Unknown can_id:0x%x\n", frame->can_id);
         return;
     }
     uint16_t id = motor_ids[i];
@@ -402,10 +402,11 @@ void process(int s[], struct can_frame *frame)
 #if !USE_CANOPEND
     else if ((frame->can_id & 0x780) == 0x580) {
         uint16_t reg = frame->data[1] | (frame->data[2] << 8);
-        uint16_t len = 4 - (frame->data[0] >> 2 & 0x0F);
+        uint16_t len = 4 - (frame->data[0] >> 2 & 0x03);
         uint32_t value = frame->data[4];
         uint8_t *p = &frame->data[5];
-        while (--len) value = value << 8 | *p++;
+        int j = 0;
+        while (--len) value = value | *p++ << ++j*8;
         if (reg == 0x6064) {
             status[i].speed = (value - speed_ofs[i].b) / speed_ofs[i].a;
         } else if (reg == 0x6069) {

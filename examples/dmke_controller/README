@@ -1,0 +1,6 @@
+# Usage
+## Linux:
+gcc dmke_controller.c -DQUERY_PERIOD_MS=10000 -DDEBUG -g -o dmke
+
+##NuttX:
+CONFIG_EXAMPLES_DMKE_CONTROLLER=y
