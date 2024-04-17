@@ -178,12 +178,14 @@ static void init_sockets(int s[])
             exit(EXIT_FAILURE);
         }
 
+#if 0
         // Set both sockets to non-blocking mode
         if (fcntl(s[i], F_SETFL, O_NONBLOCK) < 0) {
             perror("Setting socket to non-blocking mode failed");
             for (j = 0; j <= i; ++j) close(s[j]);
             exit(EXIT_FAILURE);
         }
+#endif
 
         // Set up CAN interface for each socket
         if (i == USE_CANOPEND) strcpy(ifr.ifr_name, CONFIG_EXAMPLES_DMKE_CONTROLLER_CAN_CMD);
